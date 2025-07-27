@@ -1,12 +1,13 @@
-
 import {TextInput} from "./text-input.tsx";
 import {Button} from "./Button.tsx";
-import React, {type ReactNode, useEffect, useId, useRef} from "react";
+import React, {type ReactNode, useEffect, useId, useMemo, useRef} from "react";
 import {useState} from "react";
 import JSZip from "jszip";
 import {FileInput} from "./file-input.tsx";
 import {QuestionButton} from "./QuestionButton.tsx";
-
+import {createPortal} from "react-dom";
+import "./play-game.css";
+import ConfettiExplosion from 'react-confetti-explosion';
 
 
 export interface Category {
@@ -33,17 +34,18 @@ export default function CreateQuestion() {
     const [openedQuestion, setOpenedQuestion] = useState<Question | null>(null);
     const [gameStarted, setGameStarted] = useState<boolean>(false);
     const [activeTeam, setActiveTeam] = useState<number>(0);
+    const [showModal, setShowModal] = useState(false);
+    const [isExploding, setIsExploding] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
     const teamId = useRef(0);
 
     function isFile(path: string) {
         return path.includes(".") && !path.endsWith("/");
     }
 
-    useEffect(() => {
-        console.log("categories updated: ", categories);
-    }, [categories]);
 
     async function createQuestions(id: string, file: File | null) {
+        setIsLoading(true);
         if (file === null) return;
         let cats: Category[] = [];
         const zip = await JSZip.loadAsync(file);
@@ -75,6 +77,7 @@ export default function CreateQuestion() {
         Promise.all(filePromises).then(() => {
             setCategories(cats);
             console.log(categories);
+            setIsLoading(false);
         })
     }
 
@@ -106,19 +109,21 @@ export default function CreateQuestion() {
         setGameStarted(true);
     }
 
-    function answerQuestion(correct: boolean) {
-        if (correct && teams.at(activeTeam)) {
-            teams.at(activeTeam)!.points += openedQuestion!.points;
+    function answerQuestion(team?: Team) {
+        if(team) {
+            team.points += openedQuestion!.points;
         }
         setActiveTeam((activeTeam + 1) % teams.length);
         setOpenedQuestion(null);
+        setShowModal(false);
+        setIsExploding(true);
     }
 
     function getRandomColor() {
         return 'hsla(' + (Math.random() * 360) + ', 25%, 50%, 1)';
     }
 
-    function generateHslaColors (amount: number) {
+    function generateHslaColors(amount: number) {
         let colors = []
         let huedelta = Math.trunc(360 / amount)
 
@@ -131,10 +136,15 @@ export default function CreateQuestion() {
     }
 
 
+    function openModal() {
+        setShowModal(true);
+    }
+
     return (
         <main className={'flex h-screen'}>
             {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
-                <FileInput selectFile={createQuestions} id={"gameStarter"}/>
+                {!isLoading && <FileInput selectFile={createQuestions} id={"gameStarter"}/>}
+                {isLoading && <div>Loading...</div>}
             </div>}
             {!gameStarted && categories.length > 0 &&
                 <div className="m-auto flex flex-col gap-5 ">
@@ -155,13 +165,12 @@ export default function CreateQuestion() {
                     {/*{categories.length === 0 && <FileInput selectFile={startGame} id={"gameStarter"}/>}*/}
 
                     {categories.length > 0 && (
-                        <div className="flex flex-col w-full col-span-4 gap-5  items-center justify-center">
+                        <div className="flex flex-col w-full col-span-4 gap-3  items-center justify-center">
                             {categories.map((c: Category) => (
-                                <div className={"grid grid-cols-12 gap-16 min-h-0 items-center rounded-3xl border border-gray-200 p-6 dark:border-gray-700"}>
-                                    <div className={"col-span-4 bold text-xl"}
-                                        style={{color: c.color ?? ""}}
-                                    >{c.name}</div>
-                                    <div className={"col-span-8 flex justify-start gap-10 min-h-0"}>
+                                <div
+                                    className={"grid grid-cols-12 gap-16 min-h-0 items-center rounded-lg p-3 bg-white/10 shadow-md "}>
+                                    <div className={"col-span-5 bold text-3xl"}>{c.name}</div>
+                                    <div className={"col-span-7 flex justify-start gap-10 min-h-0"}>
                                         {c.questions.sort((a, b) => {
                                             return a.points - b.points
                                         }).map((question: Question) =>
@@ -174,36 +183,61 @@ export default function CreateQuestion() {
                                     </div>
                                 </div>
                             ))}
-                            </div>
+                        </div>
 
                     )}
                     {teams.length > 0 && (
                         <div className={"flex flex-col w-full gap-2 items-center justify-center"}>
                             {teams.map((t: Team) => (
                                 <div
-                                    className={"flex w-full justify-between gap-1 min-h-0 items-center rounded-3xl border border-gray-200 p-6 dark:border-gray-700"}>
-                                    <span className={teams.at(activeTeam)?.id === t.id ? "text-sky-500 font-bold" : ""} >{t.name}</span>
-                                    <span className={teams.at(activeTeam)?.id === t.id ? "text-sky-500 font-bold" : ""} >{t.points}</span>
+                                    className={"flex w-full justify-between gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25"}>
+                                    <span
+                                        className={teams.at(activeTeam)?.id === t.id ? "text-white" : ""}>{t.name}</span>
+                                    <span
+                                        className={teams.at(activeTeam)?.id === t.id ? "text-white" : ""}>{t.points}</span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>}
             {gameStarted && openedQuestion &&
-                <div className="w-full h-full">
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-5">
-                        <button
-                            className={"px-5 py-4 text-3xl font-bold text-green-500 hover:text-green-600 active:text-green-900"}
-                            onClick={ () => answerQuestion(true)}>✓
-                        </button>
-                        <button
-                            className={"px-5 py-4 text-3xl font-bold text-red-500 hover:text-red-600 active:text-red-900"}
-                            onClick={ () => answerQuestion(false)}>X
-                        </button></div>
+                <div className="w-full h-full" onClick={() => openModal()}>
                     <img className={"p-4 absolute top-0 left-0 bottom-0 right-0 m-auto"}
+
                          src={"data:image/png;base64, " + openedQuestion.image}/>
                 </div>
             }
+            {showModal && createPortal(
+                <div id={'teamsModal'} className="modal">
+                    <div className={"relative flex justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-15 border-gray-700"}
+                    style={{background: "linear-gradient(90deg,rgba(148, 185, 255, 1) 0%, rgba(229, 149, 252, 1) 100%)"}}>
+                        <button
+                            className={"absolute top-4 right-5 text-lg font-bold text-black hover:text-gray-600 active:text-gray-900"}
+                            onClick={() => setShowModal(false)}>X
+                        </button>
+                        <div className={"flex flex-col gap-2 items-center justify-center"}>
+                            <div className={"pb-3 text-2xl font-bold whitespace-nowrap"}>Who gets the points?</div>
+                            {teams.map((t: Team) => (
+                                <div
+                                    onClick={() => answerQuestion(t)}
+                                    className={"flex w-full justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
+                                        "hover:bg-white/35 active:bg-white/90"}>
+                                    <span>{t.name}</span>
+                                </div>
+                            ))}
+
+                            <div
+                                onClick={() => answerQuestion()}
+                                className={"flex w-full justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
+                                    "hover:bg-white/35 active:bg-white/90"}>
+                                <span>{"nobody :("}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+            {isExploding && <ConfettiExplosion className={'fixed top-[30%] left-[50%]'} particleSize={10} width={1500} duration={3000} particleCount={250} onComplete={() => setIsExploding(false)}/>}
         </main>
     );
 }

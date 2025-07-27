@@ -3,7 +3,7 @@ import React, {useState} from "react";
 
 export function FileInput({id, selectFile}: {
     id: string,
-    selectFile: (id: string, file: File | null) => void
+    selectFile: (id: string, file: File | null) => void,
 }) {
     // State to hold the selected file object
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
