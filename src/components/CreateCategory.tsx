@@ -8,7 +8,7 @@ export function CreateCategory({id, selectFile, removeCategory}: {
     selectFile: (id: string, file: File | null) => void,
     removeCategory: () => void,
 }) {
-    return <div className={"bg-stone-800 p-8 rounded-lg shadow-xl mb-5"}>
+    return <div className={"bg-white/15 p-8 rounded-lg shadow-xl mb-5"}>
         <button
             className={"absolute top-0 right-0 text-md font-bold text-red-500 hover:text-red-600 active:text-red-900"}
             onClick={removeCategory}>X

@@ -54,8 +54,11 @@ const  CreateQuestion = () => {
               {categories.length > 0 && categories.map((id: string) =>
                   <CreateCategory id={id} selectFile={selectFile} removeCategory={() => setCategories([...categories.filter(t => t !== id)])}></CreateCategory>
               )}
+            <div className={"flex gap-5"}>
               <Button onClick={addCategory}>Add Category</Button>
               <Button onClick={downloadGame}>Submit</Button>
+
+            </div>
           </div>
         </div>
       </main>
