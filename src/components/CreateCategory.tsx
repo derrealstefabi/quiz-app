@@ -16,23 +16,23 @@ export function CreateCategory({id, selectFile, removeCategory}: {
             <TextInput id={id} name={id} label={"Category name"}/>
         </div>
         <div className="flex flex-row gap-3">
-            <div>
+            <div className="w-96 flex-shrink-0">
                 <div className="flex flex-col items-center gap-16 min-h-0">100</div>
                 <CreateQuestionForm id={id + "-100"} selectFile={selectFile}/>
             </div>
-            <div>
+            <div className="w-96 flex-shrink-0">
                 <div className="flex flex-col items-center gap-16 min-h-0">200</div>
                 <CreateQuestionForm id={id + "-200"} selectFile={selectFile}/>
             </div>
-            <div>
+            <div className="w-96 flex-shrink-0">
                 <div className="flex flex-col items-center gap-16 min-h-0">300</div>
                 <CreateQuestionForm id={id + "-300"} selectFile={selectFile}/>
             </div>
-            <div>
+            <div className="w-96 flex-shrink-0">
                 <div className="flex flex-col items-center gap-16 min-h-0">400</div>
                 <CreateQuestionForm id={id + "-400"} selectFile={selectFile}/>
             </div>
-            <div>
+            <div className="w-96 flex-shrink-0">
                 <div className="flex flex-col items-center gap-16 min-h-0">500</div>
                 <CreateQuestionForm id={id + "-500"} selectFile={selectFile}/>
             </div>

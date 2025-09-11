@@ -9,7 +9,7 @@ export function TextInput({id, label, name}: {
     return <div>
         <label className={'block'} htmlFor={id}>{label}</label>
         <input id={id} name={name}
-               className="shadow appearance-none border rounded w-80 py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
+               className="shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-none focus:shadow-outline"
         />
     </div>
 }
