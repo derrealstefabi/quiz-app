@@ -27,23 +27,34 @@ const  CreateQuestion = () => {
     const zip = new JSZip();
     categories.forEach(category => {
       const categoryName = (document.getElementById(category) as HTMLInputElement).value;
-      console.log(categoryName);
-      const folder = zip.folder(categoryName);
-      for (const fileKey of files.keys()) {
-        if (fileKey.startsWith(category)) {
-          console.log(fileKey.replace(category + "-", '') + ": " +  files.get(fileKey)?.name);
-          if (files.get(fileKey) !== null) {
-            const ext = files.get(fileKey)?.name.split('.').reverse().at(0);
-            folder?.file(fileKey.replace(category + "-", '') + '.' + ext, files.get(fileKey) as File)
-          }
+      const categoryFolder = zip.folder(categoryName);
+      for (let i = 1; i < 6; i++) {
+        const questionNumber = i * 100;
+        const questionId = `${category}-${questionNumber}`;
+        const question = (document.getElementById(questionId + "-question") as HTMLInputElement).value;
+        const answer = (document.getElementById(questionId + "-answer") as HTMLInputElement).value;
+        const imageFile = files.get(questionId + "-image");
+        const questionFolder = categoryFolder?.folder(questionNumber.toString());
+        const multipleChoiceOptions = Array.from(document.querySelectorAll(`#${questionId} [id^="choice-"]`))
+          .map(e => (e as HTMLInputElement).value);
+
+        const questionJson = {
+          question,
+          answer,
+          multipleChoiceOptions,
+          image: imageFile ? imageFile.name : null,
+        };
+        questionFolder?.file("question.json", JSON.stringify(questionJson));
+        if (imageFile) {
+          questionFolder?.file(imageFile.name, imageFile);
         }
       }
     })
-    zip.generateAsync({type:"blob"})
-        .then(function(content) {
-          // see FileSaver.js
-          saveAs(content, "quiz.zip");
-        });
+    zip.generateAsync({type: "blob"})
+      .then(function (content) {
+        // see FileSaver.js
+        saveAs(content, "quiz.zip");
+      });
     return undefined;
   }
 
