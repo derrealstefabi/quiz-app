@@ -32,9 +32,20 @@ const  CreateQuestion = () => {
         console.error(`Category name for ${id} is not set.`);
         return;
       }
-      const categoryFolder = zip.folder(categoryName);
 
+      const validQuestions = new Map();
       data.questions.forEach((questionData, questionId) => {
+        if (questionData.question.trim() !== '') {
+          validQuestions.set(questionId, questionData);
+        }
+      });
+
+      if(validQuestions.size === 0) {
+        return;
+      }
+
+      const categoryFolder = zip.folder(categoryName);
+      validQuestions.forEach((questionData, questionId) => {
         const point = questionId.split('-').pop();
         if(!point) return;
 
