@@ -7,7 +7,7 @@ interface QuestionDisplayProps {
 
 export function QuestionDisplay({ question }: QuestionDisplayProps) {
   return (
-    <div className="p-8 bg-gray-800 text-white rounded-lg shadow-lg max-w-4xl mx-auto">
+    <div className="p-8 bg-white/15 rounded-lg shadow-xl text-white max-w-4xl mx-auto">
       <h2 className="text-3xl font-bold mb-4">{question.question}</h2>
 
       {question.image && (
