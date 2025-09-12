@@ -1,5 +1,5 @@
 import {Button} from "./Button.tsx";
-import {CreateCategory} from "./CreateCategory.tsx";
+import {CreateCategory, CategoryData} from "./CreateCategory.tsx";
 import React, {useRef} from "react";
 import {useState} from "react";
 import JSZip from "jszip";
@@ -7,7 +7,7 @@ import saveAs from 'file-saver';
 
 const  CreateQuestion = () => {
   const [categories, setCategories] = useState<string[]>([]);
-  const [files, setFiles] = useState(new Map<string, File | null>());
+  const [categoryData, setCategoryData] = useState(new Map<string, CategoryData>());
   const questionId = useRef(0);
 
   const addCategory = () => {
@@ -16,32 +16,42 @@ const  CreateQuestion = () => {
     questionId.current += 1;
   }
 
-  function selectFile(id: string, file: File | null) {
-    console.log(id)
-    const newFiles = files
-    newFiles.set(id, file);
-    setFiles(newFiles);
-  }
+  const handleCategoryChange = (id: string, data: CategoryData) => {
+    const newCategoryData = new Map(categoryData);
+    newCategoryData.set(id, data);
+    setCategoryData(newCategoryData);
+  };
 
   function downloadGame() {
     const zip = new JSZip();
-    categories.forEach(category => {
-      const categoryName = (document.getElementById(category) as HTMLInputElement).value;
-      console.log(categoryName);
-      const folder = zip.folder(categoryName);
-      for (const fileKey of files.keys()) {
-        if (fileKey.startsWith(category)) {
-          console.log(fileKey.replace(category + "-", '') + ": " +  files.get(fileKey)?.name);
-          if (files.get(fileKey) !== null) {
-            const ext = files.get(fileKey)?.name.split('.').reverse().at(0);
-            folder?.file(fileKey.replace(category + "-", '') + '.' + ext, files.get(fileKey) as File)
-          }
-        }
+    categoryData.forEach((data, id) => {
+      const categoryName = data.name;
+      if (!categoryName) {
+        // Maybe show an error to the user
+        console.error(`Category name for ${id} is not set.`);
+        return;
       }
-    })
+      const categoryFolder = zip.folder(categoryName);
+
+      data.questions.forEach((questionData, questionId) => {
+        const point = questionId.split('-').pop();
+        if(!point) return;
+
+        const questionFolder = categoryFolder?.folder(point);
+
+        const { image, ...textData } = questionData;
+        const jsonContent = JSON.stringify(textData, null, 2);
+        questionFolder?.file("question.json", jsonContent);
+
+        if (image) {
+          const ext = image.name.split('.').pop();
+          questionFolder?.file(`image.${ext}`, image);
+        }
+      });
+    });
+
     zip.generateAsync({type:"blob"})
         .then(function(content) {
-          // see FileSaver.js
           saveAs(content, "quiz.zip");
         });
     return undefined;
@@ -52,7 +62,16 @@ const  CreateQuestion = () => {
         <div className="flex-1 flex flex-col items-center gap-16 min-h-0">
           <div className="space-y-6 px-4">
               {categories.length > 0 && categories.map((id: string) =>
-                  <CreateCategory id={id} selectFile={selectFile} removeCategory={() => setCategories([...categories.filter(t => t !== id)])}></CreateCategory>
+                  <CreateCategory
+                      id={id}
+                      onCategoryChange={handleCategoryChange}
+                      removeCategory={() => {
+                        setCategories([...categories.filter(t => t !== id)]);
+                        const newCategoryData = new Map(categoryData);
+                        newCategoryData.delete(id);
+                        setCategoryData(newCategoryData);
+                      }}
+                  />
               )}
             <div className={"flex gap-5"}>
               <Button onClick={addCategory}>Add Category</Button>
