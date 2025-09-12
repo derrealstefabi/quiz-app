@@ -231,7 +231,13 @@ export default function CreateQuestion() {
                             className={"absolute top-4 right-5 text-lg font-bold text-black hover:text-gray-600 active:text-gray-900"}
                             onClick={() => setShowModal(false)}>X
                         </button>
-                        <div className={"flex flex-col gap-2 items-center justify-center"}>
+                        <div className={"flex flex-col gap-2 items-center justify-center p-8"}>
+                            {openedQuestion && (
+                                <div className="mb-4 text-center">
+                                    <h3 className="text-xl font-semibold text-black">The correct answer is:</h3>
+                                    <p className="text-2xl text-white">{openedQuestion.answer}</p>
+                                </div>
+                            )}
                             <div className={"pb-3 text-2xl font-bold whitespace-nowrap"}>Who gets the points?</div>
                             {teams.map((t: Team) => (
                                 <div
