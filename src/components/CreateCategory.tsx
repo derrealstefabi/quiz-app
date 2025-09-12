@@ -1,6 +1,7 @@
 import React from "react";
 import {TextInput} from "./text-input.tsx";
-import {CreateQuestionForm, QuestionData} from "./CreateQuestionForm.tsx";
+import {CreateQuestionForm} from "./CreateQuestionForm.tsx";
+import type {QuestionData} from "./CreateQuestionForm.tsx";
 
 export interface CategoryData {
     name: string;

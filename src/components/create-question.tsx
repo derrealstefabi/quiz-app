@@ -1,5 +1,6 @@
 import {Button} from "./Button.tsx";
-import {CreateCategory, CategoryData} from "./CreateCategory.tsx";
+import {CreateCategory} from "./CreateCategory.tsx";
+import type {CategoryData} from "./CreateCategory.tsx";
 import React, {useRef} from "react";
 import {useState} from "react";
 import JSZip from "jszip";
