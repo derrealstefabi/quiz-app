@@ -5,6 +5,7 @@ import {useState} from "react";
 import JSZip from "jszip";
 import {FileInput} from "./file-input.tsx";
 import {QuestionButton} from "./QuestionButton.tsx";
+import {QuestionDisplay} from "./QuestionDisplay.tsx";
 import {createPortal} from "react-dom";
 import "./play-game.css";
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -18,7 +19,10 @@ export interface Category {
 
 export interface Question {
     points: number;
-    image: string;
+    question: string;
+    answer: string;
+    choices?: string[];
+    image?: string;
     opened: boolean;
 }
 
@@ -47,38 +51,52 @@ export default function CreateQuestion() {
     async function createQuestions(id: string, file: File | null) {
         setIsLoading(true);
         if (file === null) return;
-        let cats: Category[] = [];
+
         const zip = await JSZip.loadAsync(file);
-        const filePromises: Promise<void>[] = [];
+        const categoriesMap = new Map<string, Category>();
 
-        zip.forEach((path) => {
-            if (!isFile(path)) {
-                const category = path.split("/").at(0) as string;
-                cats.push({name: category, color: getRandomColor(), questions: []});
-            } else if (isFile(path)) {
-                const categoryName = path.split("/").at(0) as string;
-                const category = cats.find((c) => c.name === categoryName) as Category;
-                filePromises.push(new Promise((resolve, reject) => {
-                    zip.file(path)?.async('base64').then(fileContents => {
-                        category?.questions.push({
-                                points: Number(path.split('/')[1].split('.')[0]),
-                                image: fileContents as string,
-                                opened: false
-                            }
-                        );
-                        cats = cats.filter((c) => c.name !== categoryName);
-                        cats.push(category);
-                        resolve();
-                    })
-                }))
+        for (const path in zip.files) {
+            if (path.endsWith('/')) continue; // Skip directories
+
+            const parts = path.split('/');
+            if (parts.length < 3) continue; // Expecting category/points/file
+
+            const categoryName = parts[0];
+            const points = parseInt(parts[1], 10);
+            const fileName = parts[2];
+
+            if (!categoriesMap.has(categoryName)) {
+                categoriesMap.set(categoryName, {
+                    name: categoryName,
+                    color: getRandomColor(),
+                    questions: [],
+                });
             }
-        });
 
-        Promise.all(filePromises).then(() => {
-            setCategories(cats);
-            console.log(categories);
-            setIsLoading(false);
-        })
+            const category = categoriesMap.get(categoryName)!;
+            let question = category.questions.find(q => q.points === points);
+            if (!question) {
+                question = {
+                    points,
+                    question: "",
+                    answer: "",
+                    opened: false,
+                };
+                category.questions.push(question);
+            }
+
+            if (fileName === 'question.json') {
+                const content = await zip.file(path)!.async('string');
+                const jsonData = JSON.parse(content);
+                Object.assign(question, jsonData);
+            } else if (fileName.startsWith('image.')) {
+                const content = await zip.file(path)!.async('base64');
+                question.image = content;
+            }
+        }
+
+        setCategories(Array.from(categoriesMap.values()));
+        setIsLoading(false);
     }
 
     function openQuestion(category: Category, question: Question) {
@@ -201,10 +219,8 @@ export default function CreateQuestion() {
                     )}
                 </div>}
             {gameStarted && openedQuestion &&
-                <div className="w-full h-full" onClick={() => openModal()}>
-                    <img className={"p-4 absolute top-0 left-0 bottom-0 right-0 m-auto"}
-
-                         src={"data:image/png;base64, " + openedQuestion.image}/>
+                <div className="w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-75" onClick={() => openModal()}>
+                    <QuestionDisplay question={openedQuestion} />
                 </div>
             }
             {showModal && createPortal(

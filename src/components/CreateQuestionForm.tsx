@@ -52,14 +52,16 @@ export function CreateQuestionForm({id, onDataChange}: {
 
             <h3 className="text-lg font-semibold">Multiple Choice Options</h3>
             {choices.map((choice, index) => (
-                <TextInput
-                    id={`${id}-choice-${index}`}
-                    label={`Option ${index + 1}`}
-                    name={`choice-${index}`}
-                    value={choice}
-                    onChange={(e) => handleChoiceChange(index, e.target.value)}
-                    onXClick={() => removeChoice(index)}
-                />
+                <div key={index} className="flex items-center gap-2">
+                    <TextInput
+                        id={`${id}-choice-${index}`}
+                        label={`Option ${index + 1}`}
+                        name={`choice-${index}`}
+                        value={choice}
+                        onChange={(e) => handleChoiceChange(index, e.target.value)}
+                    />
+                    <button onClick={() => removeChoice(index)} className="text-red-500 hover:text-red-700">Remove</button>
+                </div>
             ))}
             <Button onClick={addChoice}>Add Option</Button>
         </div>
