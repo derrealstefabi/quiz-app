@@ -24,7 +24,7 @@ export function QuestionDisplay({ question }: QuestionDisplayProps) {
       {question.choices && question.choices.length > 0 && (
         <div className="my-2 grid grid-cols-2 gap-4 flex-grow">
           {question.choices.map((choice, index) => (
-            <div key={index} className="p-2 bg-white/10 rounded-lg text-lg hover:bg-white/20 cursor-pointer flex items-center justify-center text-center">
+            <div key={index} className="p-2 rounded-3xl border border-gray-700 bg-white/25 text-lg cursor-pointer flex items-center justify-center text-center">
               <span>{choice}</span>
             </div>
           ))}
