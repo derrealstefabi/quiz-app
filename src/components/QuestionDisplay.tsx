@@ -7,27 +7,27 @@ interface QuestionDisplayProps {
 
 export function QuestionDisplay({ question }: QuestionDisplayProps) {
   return (
-    <div className="p-8 bg-white/15 rounded-lg shadow-xl text-white max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-4">{question.question}</h2>
-
+    <div className="p-4 bg-white/15 rounded-lg shadow-xl text-white max-w-4xl w-full mx-auto flex flex-col" style={{maxHeight: '90vh'}}>
       {question.image && (
-        <div className="my-4">
+        <div className="my-2 flex-shrink-0">
           <img
             src={`data:image/png;base64, ${question.image}`}
             alt="Question image"
-            className="max-w-full h-auto rounded-md"
+            className="max-w-full h-auto rounded-md mx-auto"
+            style={{maxHeight: '40vh'}}
           />
         </div>
       )}
 
+      <h2 className="text-2xl font-bold my-2 text-center flex-shrink-0">{question.question}</h2>
+
       {question.choices && question.choices.length > 0 && (
-        <div className="my-4 space-y-2">
-          <h3 className="text-xl font-semibold">Options:</h3>
-          <ul className="list-disc list-inside">
-            {question.choices.map((choice, index) => (
-              <li key={index} className="text-lg">{choice}</li>
-            ))}
-          </ul>
+        <div className="my-2 grid grid-cols-2 gap-4 flex-grow">
+          {question.choices.map((choice, index) => (
+            <div key={index} className="p-2 bg-white/10 rounded-lg text-lg hover:bg-white/20 cursor-pointer flex items-center justify-center text-center">
+              <span>{choice}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>
