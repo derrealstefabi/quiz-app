@@ -7,7 +7,7 @@ interface QuestionDisplayProps {
 
 export function QuestionDisplay({ question }: QuestionDisplayProps) {
   return (
-    <div className="p-4 bg-white/15 rounded-lg shadow-xl text-white max-w-4xl w-full mx-auto flex flex-col" style={{maxHeight: '90vh'}}>
+    <div className="p-8 bg-white/15 text-white w-screen h-screen flex flex-col">
       {question.image && (
         <div className="my-2 flex-shrink-0">
           <img
@@ -24,7 +24,7 @@ export function QuestionDisplay({ question }: QuestionDisplayProps) {
       {question.choices && question.choices.length > 0 && (
         <div className="my-2 grid grid-cols-2 gap-4 flex-grow">
           {question.choices.map((choice, index) => (
-            <div key={index} className="p-2 rounded-3xl border border-gray-700 bg-white/25 text-lg cursor-pointer flex items-center justify-center text-center">
+            <div key={index} className="p-2 bg-white/10 rounded-lg text-lg hover:bg-white/20 cursor-pointer flex items-center justify-center text-center">
               <span>{choice}</span>
             </div>
           ))}

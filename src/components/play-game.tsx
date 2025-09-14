@@ -219,7 +219,7 @@ export default function CreateQuestion() {
                     )}
                 </div>}
             {gameStarted && openedQuestion &&
-                <div className="w-full h-full flex items-center justify-center" onClick={() => openModal()}>
+                <div className="w-full h-full" onClick={() => openModal()}>
                     <QuestionDisplay question={openedQuestion} />
                 </div>
             }
