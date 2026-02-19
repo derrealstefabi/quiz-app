@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, {type ChangeEvent, useEffect, useState} from "react";
 import {TextInput} from "./text-input.tsx";
 import {FileInput} from "./file-input.tsx";
 import {Button} from "./Button.tsx";
@@ -18,6 +18,7 @@ export function CreateQuestionForm({id, onDataChange}: {
     const [answer, setAnswer] = useState("");
     const [image, setImage] = useState<File | null>(null);
     const [choices, setChoices] = useState<string[]>([]);
+    const [invalidChoices, setInvalidChoices] = useState<string[]>([]);
 
     useEffect(() => {
         onDataChange(id, { question, answer, image, choices });
@@ -27,10 +28,15 @@ export function CreateQuestionForm({id, onDataChange}: {
         setImage(file);
     };
 
-    const handleChoiceChange = (index: number, value: string) => {
+    const handleChoiceChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
         const newChoices = [...choices];
-        newChoices[index] = value;
-        setChoices(newChoices);
+        if (e.target.value.match("###")) {
+            setInvalidChoices([...invalidChoices, e.target.id])
+        } else {
+            setInvalidChoices(invalidChoices.filter(choice => choice !== e.target.id))
+            newChoices[index] = e.target.value;
+            setChoices(newChoices);
+        }
     };
 
     const addChoice = () => {
@@ -52,16 +58,19 @@ export function CreateQuestionForm({id, onDataChange}: {
 
             <h3 className="text-lg font-semibold">Multiple Choice Options</h3>
             {choices.map((choice, index) => (
-                <div key={index} className="flex items-center gap-2">
-                    <TextInput
-                        id={`${id}-choice-${index}`}
-                        label={`Option ${index + 1}`}
-                        name={`choice-${index}`}
-                        value={choice}
-                        onChange={(e) => handleChoiceChange(index, e.target.value)}
-                    />
-                    <button onClick={() => removeChoice(index)} className="text-red-500 hover:text-red-700">Remove</button>
-                </div>
+                <>
+                    <div key={index} className="flex items-center gap-2">
+                        <TextInput
+                            id={`${id}-choice-${index}`}
+                            label={`Option ${index + 1}`}
+                            name={`choice-${index}`}
+                            value={choice}
+                            onChange={(e) => handleChoiceChange(index, e)}
+                        />
+                        <button onClick={() => removeChoice(index)} className="text-red-500 hover:text-red-700">Remove</button>
+                    </div>
+                    <div className="text-red-500">{invalidChoices.includes(`${id}-choice-${index}`) && "Choice may not contain ###"}</div>
+                </>
             ))}
             <Button onClick={addChoice}>Add Option</Button>
         </div>

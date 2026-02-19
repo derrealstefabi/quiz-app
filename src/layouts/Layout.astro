@@ -1,4 +1,5 @@
 ---
+import { AwsLoginButton } from "../components/AwsLoginButton";
 import "../styles/global.css";
 ---
 
@@ -12,6 +13,9 @@ import "../styles/global.css";
 		<title>Hello There!</title>
 	</head>
 	<body>
+		<div class="fixed top-5 right-5">
+			<AwsLoginButton client:only></AwsLoginButton>
+		</div>
 		<slot />
 	</body>
 </html>

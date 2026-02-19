@@ -9,7 +9,17 @@ import {QuestionDisplay} from "./QuestionDisplay.tsx";
 import {createPortal} from "react-dom";
 import "./play-game.css";
 import ConfettiExplosion from 'react-confetti-explosion';
+import type {CategoryData} from "./CreateCategory.tsx";
+import type {AwsQuestion} from "./create-question.tsx";
 
+export interface AwsGetQuestionsResponse {
+    quiz_id: AwsString;
+    quiz_name: AwsString;
+}
+
+export interface AwsString {
+    S: string;
+}
 
 export interface Category {
     name: string;
@@ -33,6 +43,7 @@ export interface Team {
 }
 
 export default function CreateQuestion() {
+    const [availableQuizes, setAvailableQuizes] = useState<string[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [openedQuestion, setOpenedQuestion] = useState<Question | null>(null);
@@ -42,6 +53,34 @@ export default function CreateQuestion() {
     const [isExploding, setIsExploding] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(false);
     const teamId = useRef(0);
+    const auth = 'Bearer ' + localStorage.getItem('aws_token');
+
+    useEffect(() => {
+        console.log(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz");
+        fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
+            method: 'GET',
+            headers: {
+                'Authorization': auth,
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                response.json().then((result: AwsGetQuestionsResponse[]) => {
+                    console.log(result);
+                    setAvailableQuizes(result.map(q => q.quiz_name.S + "-" + q.quiz_id.S));
+                });
+                // return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+    }, [])
 
     function isFile(path: string) {
         return path.includes(".") && !path.endsWith("/");
@@ -162,6 +201,16 @@ export default function CreateQuestion() {
         <main className={'flex h-screen'}>
             {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
                 {!isLoading && <FileInput selectFile={createQuestions} id={"gameStarter"}/>}
+                {isLoading && <div>Loading...</div>}
+            </div>}
+            {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
+                {!isLoading && <>
+                    <select id={"gameStarterAWS"}>
+                        <option value={"default"}>Choose a quiz</option>
+                        {availableQuizes.map(quiz => <option key={quiz} value={quiz}>{quiz}</option>)}
+                    </select>
+                    {/*<Button onClick={createQuestionsAWS}>Load from AWS</Button>*/}
+                </>}
                 {isLoading && <div>Loading...</div>}
             </div>}
             {!gameStarted && categories.length > 0 &&
