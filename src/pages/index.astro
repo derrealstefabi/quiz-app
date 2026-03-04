@@ -1,5 +1,5 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import { QuizList } from '../components/QuizList';
 import Layout from '../layouts/Layout.astro';
 
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
@@ -7,5 +7,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout>
-	<Welcome />
+	<main class="flex items-center justify-center p-16 pt-32">
+		<QuizList client:only="react"></QuizList>
+	</main>
 </Layout>

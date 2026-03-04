@@ -1,24 +1,30 @@
-import {TextInput} from "./text-input.tsx";
+import {TextInput} from "./TextInput.tsx";
 import {Button} from "./Button.tsx";
-import React, {type ReactNode, useEffect, useId, useMemo, useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {useState} from "react";
-import JSZip from "jszip";
-import {FileInput} from "./file-input.tsx";
 import {QuestionButton} from "./QuestionButton.tsx";
 import {QuestionDisplay} from "./QuestionDisplay.tsx";
 import {createPortal} from "react-dom";
 import "./play-game.css";
 import ConfettiExplosion from 'react-confetti-explosion';
-import type {CategoryData} from "./CreateCategory.tsx";
-import type {AwsQuestion} from "./create-question.tsx";
 
-export interface AwsGetQuestionsResponse {
-    quiz_id: AwsString;
-    quiz_name: AwsString;
+import {fetchAuthSession} from "aws-amplify/auth";
+
+export interface AwsGetQuestion {
+    category: AwsString;
+    question: AwsString;
+    answer: AwsString;
+    points: AwsString;
+    image?: AwsString;
+    choices?: AwsArray;
 }
 
 export interface AwsString {
     S: string;
+}
+
+export interface AwsArray {
+    L: AwsString[];
 }
 
 export interface Category {
@@ -42,8 +48,10 @@ export interface Team {
     points: number;
 }
 
-export default function CreateQuestion() {
-    const [availableQuizes, setAvailableQuizes] = useState<string[]>([]);
+export function PlayGame() {
+    const [quizId, setQuizId] = useState<string | null>();
+
+
     const [categories, setCategories] = useState<Category[]>([]);
     const [teams, setTeams] = useState<Team[]>([]);
     const [openedQuestion, setOpenedQuestion] = useState<Question | null>(null);
@@ -51,58 +59,52 @@ export default function CreateQuestion() {
     const [activeTeam, setActiveTeam] = useState<number>(0);
     const [showModal, setShowModal] = useState(false);
     const [isExploding, setIsExploding] = React.useState(false);
-    const [isLoading, setIsLoading] = React.useState(false);
+    const [isLoading, setIsLoading] = React.useState(true);
     const teamId = useRef(0);
-    const auth = 'Bearer ' + localStorage.getItem('aws_token');
 
     useEffect(() => {
         console.log(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz");
-        fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
-            method: 'GET',
-            headers: {
-                'Authorization': auth,
-            },
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                response.json().then((result: AwsGetQuestionsResponse[]) => {
-                    console.log(result);
-                    setAvailableQuizes(result.map(q => q.quiz_name.S + "-" + q.quiz_id.S));
+        console.log(window.location.search);
+
+        const queryString = window.location.search
+        const params = new URLSearchParams(queryString)
+        const quizId = params.get('quiz');
+        setQuizId(quizId);
+
+        fetchAuthSession().then(auth => {
+            fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz/" + quizId, {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer ' + auth.tokens?.accessToken.toString(),
+                },
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    response.json().then((result: AwsGetQuestion[]) => {
+                        console.log(result);
+                        // setAwsQuestions(result);
+                        void createQuestions(result);
+                    });
+                    // return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
                 });
-                // return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        })
 
     }, [])
 
-    function isFile(path: string) {
-        return path.includes(".") && !path.endsWith("/");
-    }
-
-
-    async function createQuestions(id: string, file: File | null) {
-        setIsLoading(true);
-        if (file === null) return;
-
-        const zip = await JSZip.loadAsync(file);
+    async function createQuestions(awsQuestions: AwsGetQuestion[]) {
         const categoriesMap = new Map<string, Category>();
 
-        for (const path in zip.files) {
-            if (path.endsWith('/')) continue; // Skip directories
+        for (const awsQuestion of awsQuestions) {
 
-            const parts = path.split('/');
-            if (parts.length < 3) continue; // Expecting category/points/file
-
-            const categoryName = parts[0];
-            const points = parseInt(parts[1], 10);
-            const fileName = parts[2];
+            const categoryName = awsQuestion.category.S;
 
             if (!categoriesMap.has(categoryName)) {
                 categoriesMap.set(categoryName, {
@@ -113,33 +115,47 @@ export default function CreateQuestion() {
             }
 
             const category = categoriesMap.get(categoryName)!;
-            let question = category.questions.find(q => q.points === points);
-            if (!question) {
-                question = {
-                    points,
-                    question: "",
-                    answer: "",
-                    opened: false,
-                };
-                category.questions.push(question);
-            }
 
-            if (fileName === 'question.json') {
-                const content = await zip.file(path)!.async('string');
-                const jsonData = JSON.parse(content);
-                Object.assign(question, jsonData);
-            } else if (fileName.startsWith('image.')) {
-                const content = await zip.file(path)!.async('base64');
-                question.image = content;
-            }
+
+            category.questions.push({
+                points: +awsQuestion.points.S,
+                question: awsQuestion.question.S,
+                answer: awsQuestion.answer.S,
+                choices: awsQuestion.choices?.L.map(c => c.S),
+                image: awsQuestion.image?.S,
+                opened: false,
+            });
+
         }
 
         setCategories(Array.from(categoriesMap.values()));
         setIsLoading(false);
     }
 
-    function openQuestion(category: Category, question: Question) {
+    async function openQuestion(question: Question) {
         if (question.opened) return;
+        console.log("openQuestion", question);
+
+        const authSession = await fetchAuthSession();
+
+        if (question.image) {
+            const presignedUrlResponse = await fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/createPresignedGet?quiz_id=" + quizId + "&object_name=" + question.image, {
+                    headers: {
+                        'Authorization': 'Bearer ' + authSession.tokens?.accessToken.toString(),
+                    },
+                });
+
+            if (presignedUrlResponse.ok) {
+                const presignedUrl = await presignedUrlResponse.text();
+                console.log("presignedUrl", presignedUrl);
+                question.image = presignedUrl;
+                console.log("image", question.image);
+            } else {
+                console.error('Post Image Error:', presignedUrlResponse.statusText);
+            }
+
+        }
+
         question.opened = true;
         setOpenedQuestion(question);
 
@@ -200,17 +216,6 @@ export default function CreateQuestion() {
     return (
         <main className={'flex h-screen'}>
             {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
-                {!isLoading && <FileInput selectFile={createQuestions} id={"gameStarter"}/>}
-                {isLoading && <div>Loading...</div>}
-            </div>}
-            {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
-                {!isLoading && <>
-                    <select id={"gameStarterAWS"}>
-                        <option value={"default"}>Choose a quiz</option>
-                        {availableQuizes.map(quiz => <option key={quiz} value={quiz}>{quiz}</option>)}
-                    </select>
-                    {/*<Button onClick={createQuestionsAWS}>Load from AWS</Button>*/}
-                </>}
                 {isLoading && <div>Loading...</div>}
             </div>}
             {!gameStarted && categories.length > 0 &&
@@ -244,7 +249,7 @@ export default function CreateQuestion() {
                                             <QuestionButton
                                                 color={c.color}
                                                 disabled={question.opened}
-                                                onClick={() => openQuestion(c, question)}>{question.points}
+                                                onClick={() => openQuestion(question)}>{question.points}
                                             </QuestionButton>
                                         )}
                                     </div>
@@ -257,18 +262,19 @@ export default function CreateQuestion() {
                         <div className={"flex flex-col w-full gap-2 items-center justify-center"}>
                             {teams.map((t: Team) => (
                                 <div
-                                    className={"flex w-full justify-between gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25"}>
+                                    className={"flex w-full justify-between gap-1 min-h-0 items-center rounded-3xl p-6 font-medium bg-white/10 shadow-md" +
+                                    (teams.at(activeTeam)?.id === t.id ? " bg-white/45" : "")}>
                                     <span
-                                        className={teams.at(activeTeam)?.id === t.id ? "text-white" : ""}>{t.name}</span>
+                                        className={teams.at(activeTeam)?.id === t.id ? "text-xl font-extrabold" : ""}>{t.name}</span>
                                     <span
-                                        className={teams.at(activeTeam)?.id === t.id ? "text-white" : ""}>{t.points}</span>
+                                        className={teams.at(activeTeam)?.id === t.id ? "text-xl font-extrabold" : ""}>{t.points}</span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>}
             {gameStarted && openedQuestion &&
-                <div className="w-full h-full flex items-center justify-center bg-gray-900 bg-opacity-75" onClick={() => openModal()}>
+                <div className="w-full h-full flex items-center justify-center" onClick={() => openModal()}>
                     <QuestionDisplay question={openedQuestion} />
                 </div>
             }
@@ -288,14 +294,17 @@ export default function CreateQuestion() {
                                 </div>
                             )}
                             <div className={"pb-3 text-2xl font-bold whitespace-nowrap"}>Who gets the points?</div>
-                            {teams.map((t: Team) => (
-                                <div
-                                    onClick={() => answerQuestion(t)}
-                                    className={"flex w-full justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
-                                        "hover:bg-white/35 active:bg-white/90"}>
-                                    <span>{t.name}</span>
-                                </div>
-                            ))}
+                            <div className={"flex gap-2 items-center justify-center"}>
+                                {teams.map((t: Team) => (
+                                    <div
+                                        onClick={() => answerQuestion(t)}
+                                        className={"basis-1/2 grow-0 shrink-0 flex justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
+                                            "hover:bg-white/35 active:bg-white/90"}>
+                                        <span>{t.name}</span>
+                                    </div>
+                                ))}
+
+                            </div>
 
                             <div
                                 onClick={() => answerQuestion()}

@@ -1,7 +1,7 @@
 import React from "react";
-import {TextInput} from "./text-input.tsx";
-import {CreateQuestionForm} from "./CreateQuestionForm.tsx";
-import type {QuestionData} from "./CreateQuestionForm.tsx";
+import {TextInput} from "./TextInput.tsx";
+import {CreateQuestion} from "./CreateQuestion.tsx";
+import type {QuestionData} from "./CreateQuestion.tsx";
 
 export interface CategoryData {
     name: string;
@@ -43,7 +43,7 @@ export function CreateCategory({id, onCategoryChange, removeCategory}: {
                 {points.map(point => (
                     <div key={point}>
                         <div className="flex flex-col items-center gap-2 mb-2">{point}</div>
-                        <CreateQuestionForm id={`${id}-${point}`} onDataChange={handleQuestionChange} />
+                        <CreateQuestion id={`${id}-${point}`} onDataChange={handleQuestionChange} />
                     </div>
                 ))}
             </div>

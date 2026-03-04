@@ -4,16 +4,16 @@ import type {CategoryData} from "./CreateCategory.tsx";
 import React, {useRef} from "react";
 import {useState} from "react";
 import JSZip from "jszip";
-import saveAs from 'file-saver';
-import type {QuestionData} from "./CreateQuestionForm.tsx";
-import {TextInput} from "./text-input.tsx";
+import {TextInput} from "./TextInput.tsx";
+import {fetchAuthSession} from "aws-amplify/auth";
 
 export interface AwsQuestion {
   category: string;
   question: string;
   answer: string;
   points: string;
-  image?: File | string | null;
+  imageFile?: File | null;
+  image?: string | null;
   choices?: string[];
 }
 
@@ -22,15 +22,11 @@ export interface AwsQuiz {
   questions: AwsQuestion[];
 }
 
-const  CreateQuestion = () => {
+const  CreateQuiz = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [quizName, setQuizName] = useState<string>("");
   const [categoryData, setCategoryData] = useState(new Map<string, CategoryData>());
   const questionId = useRef(0);
-  const [awsOutput, setAwsOutput] = useState<string>();
-
-  console.log("window",window.location.href)
-  const auth = 'Bearer ' + localStorage.getItem('aws_token');
 
   const addCategory = () => {
     const id = "category-" + questionId.current;
@@ -38,90 +34,59 @@ const  CreateQuestion = () => {
     questionId.current += 1;
   }
 
-  const addDynamo = async (quiz: AwsQuiz) => {
+  const addDynamo = async (quiz: AwsQuiz): Promise<boolean> => {
+    const authSession = await fetchAuthSession();
+    const saveQuizResponse = await fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + authSession.tokens?.accessToken.toString(),
+      },
+      body: JSON.stringify(quiz),
+    });
+
+    if (!saveQuizResponse.ok) {
+      return false;
+    }
+
+    const saveQuizResponseJson = await saveQuizResponse.json();
+
+    const quizId = saveQuizResponseJson.quiz_id;
+
     for (let question of quiz.questions) {
       if (question.image) {
         const presignedPostUrl = await
-            (await fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/createPresignedPost/" + (question.image as File).name, {
+            (await fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/createPresignedPost?quiz_id=" + quizId + "&object_name=" + question.image, {
               method: 'GET',
               headers: {
-                'Authorization': auth,
+                'Authorization': 'Bearer ' + authSession.tokens?.accessToken.toString(),
               },
 
             }))
                 .json();
 
-        console.log("presignedPostUrl", presignedPostUrl);
-
         const formData = new FormData();
-        formData.append('key', presignedPostUrl.fields.key);
-        formData.append('x-amz-algorithm', presignedPostUrl.fields["x-amz-algorithm"]);
-        formData.append('x-amz-credential', presignedPostUrl.fields["x-amz-credential"]);
-        formData.append('x-amz-date', presignedPostUrl.fields["x-amz-date"]);
-        formData.append('x-amz-security-token', presignedPostUrl.fields["x-amz-security-token"]);
-        formData.append('x-amz-signature', presignedPostUrl.fields["x-amz-signature"]);
-        formData.append('policy', presignedPostUrl.fields.policy);
-        formData.append('file', question.image as File);
+        // Add every presigned field exactly as returned
+        for (const [k, v] of Object.entries(presignedPostUrl.fields)) {
+          formData.set(k, v as any as string);
+        }
+        formData.set("Content-Type", question.imageFile!.type);
+        formData.set('file', question.imageFile!);
         let response = await fetch(presignedPostUrl.url, {
           method: 'POST',
           body: formData,
         });
 
         if (response.ok) {
-          question.image = presignedPostUrl.fields.key;
           console.log("image", question.image);
         } else {
           console.error('Post Image Error:', response.statusText);
+          return false;
         }
 
       }
     }
-
-    fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': auth,
-      },
-      body: JSON.stringify(quiz),
-    })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-          }
-          response.text().then(text => setAwsOutput(text));
-        })
-        .then(data => {
-          console.log('Post Question Success:', data);
-        })
-        .catch(error => {
-          console.error('Post Question Error:', error);
-        });
-
-  }
-
-  const getDynamo = () => {
-    console.log(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz");
-    fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
-      method: 'GET',
-      headers: {
-        'Authorization': auth,
-      },
-    })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok ' + response.statusText);
-          }
-          response.text().then(text => setAwsOutput(text));
-          // return response.json();
-        })
-        .then(data => {
-          console.log('Success:', data);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
-
+    return true;
   }
 
   const handleCategoryChange = (id: string, data: CategoryData) => {
@@ -175,12 +140,13 @@ const  CreateQuestion = () => {
     if (download) {
       zip.generateAsync({type:"blob"})
           .then(function(content) {
+            const saveAs = require('file-saver');
             saveAs(content, "quiz.zip");
       });
     }
   }
 
-  const saveGame = () => {
+  const saveGame = async () => {
     let quiz: AwsQuiz = {
       name: quizName,
       questions: categoryData.entries().map(([categoryId, categoryData]) => {
@@ -193,14 +159,17 @@ const  CreateQuestion = () => {
             points: questionId.split('-').pop()!
           } as AwsQuestion;
           if (questionData.image) {
-            question.image = questionData.image;
-          };
+            question.imageFile = questionData.image;
+            question.image = questionData.image.name;
+          }
           return question;
         }).toArray()
       }).toArray().flat()
     }
     console.log(quiz);
-    addDynamo(quiz);
+    if (await addDynamo(quiz)) {
+      window.location.href = "/";
+    }
   }
 
   const downloadGame = () => {
@@ -239,4 +208,4 @@ const  CreateQuestion = () => {
   );
 };
 
-export default CreateQuestion;
+export default CreateQuiz;

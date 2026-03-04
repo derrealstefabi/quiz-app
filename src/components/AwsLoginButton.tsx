@@ -1,44 +1,55 @@
-import React, {useEffect, useState} from "react";
+import React, { useState } from "react";
+import { signInWithRedirect, signOut, fetchAuthSession} from "aws-amplify/auth";
 
+type User = {
+    email: string;
+    username: string;
+}
 
 export function AwsLoginButton() {
-    const [loggedIn, setLoggedIn] = useState(false);
+    const [user, setUser] = useState<User | undefined>(undefined);
 
-    useEffect(() => {
-        const hashString = window.location.hash;
-        console.log("hashString", hashString);
-        hashString.substring(1).split("&").forEach(param => {
-            console.log(param);
-            if (param.startsWith("id_token=")) {
-                let paramSplit = param.split("=");
-                if (paramSplit.length === 2) {
-                    localStorage.setItem("aws_token", paramSplit.at(1)!)
-                }
-            }
+    fetchAuthSession().then(auth => {
+        console.log("auth", auth);
+        setUser({
+            email: auth.tokens?.idToken?.payload?.email as string,
+            username: auth.tokens?.accessToken.payload.username as string
+        });
+    })
+        .catch(err => {
+            console.log(err);
+            console.log("auth", false);
+            setUser(undefined);
         });
 
-        setLoggedIn(localStorage.getItem("aws_token") !== null);
-    }, []);
-
-
-    return (<>
-        {
-            !loggedIn &&
-            <a  href={import.meta.env.PUBLIC_AWS_LOGIN_URL}
-                className={`rounded-md bg-sky-500 px-5 py-2.5 text-sm leading-5 font-semibold text-white hover:bg-sky-700 active:bg-sky-950 disabled:bg-gray-400`}>
-                Login
-            </a>
-        }
-        {
-            loggedIn &&
+    return <>
+        {!user &&
             <button
-                onClick={() => {
-                    localStorage.removeItem("aws_token");
-                    setLoggedIn(false);
-                }}
-                className={`rounded-md bg-sky-500 px-5 py-2.5 text-sm leading-5 font-semibold text-white hover:bg-sky-700 active:bg-sky-950 disabled:bg-gray-400`}>
-                Logout
+                onClick={() => signInWithRedirect()}
+                className="rounded-md bg-sky-500 px-5 py-2.5 text-sm leading-5 font-semibold text-white hover:bg-sky-700 active:bg-sky-950 disabled:bg-gray-400"
+            >
+                Login
             </button>
+
         }
-    </>)
+        {user &&
+            <div className={"flex flex-col items-end gap-3"}>
+
+                <div>
+                    <span className={'text-lg'}>{user.username}</span> ({user.email})
+                </div>
+
+                <button
+                    onClick={() => {
+                        setUser(undefined);
+                        signOut();
+                    }}
+                    className="rounded-md bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-sky-700"
+                >
+                    Logout
+                </button>
+            </div>
+
+        }
+    </>
 }

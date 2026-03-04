@@ -1,6 +1,6 @@
 import React, {type ChangeEvent, useEffect, useState} from "react";
-import {TextInput} from "./text-input.tsx";
-import {FileInput} from "./file-input.tsx";
+import {TextInput} from "./TextInput.tsx";
+import {FileInput} from "./FileInput.tsx";
 import {Button} from "./Button.tsx";
 
 export interface QuestionData {
@@ -10,7 +10,7 @@ export interface QuestionData {
     choices: string[];
 }
 
-export function CreateQuestionForm({id, onDataChange}: {
+export function CreateQuestion({id, onDataChange}: {
     id: string,
     onDataChange: (id: string, data: QuestionData) => void,
 }) {
