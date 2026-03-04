@@ -68,6 +68,7 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
       - name: Create env file
         run: |
+          ls -la
           rm -f .env
           echo "PUBLIC_AWS_ENDPOINT_URL=${{ vars.PUBLIC_AWS_ENDPOINT_URL }}" >> .env
           echo "PUBLIC_AWS_REGION=${{ vars.PUBLIC_AWS_REGION }}" >> .env
@@ -76,6 +77,8 @@ jobs:
           echo "PUBLIC_COGNITO_REDIRECT_SIGNOUT=${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNOUT }}" >> .env
           echo "PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_CLIENT_ID }}" >> .env
           echo "PUBLIC_COGNITO_USER_POOL_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}" >> .env
+          echo .env
+          ls -la
         working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
         run: |
