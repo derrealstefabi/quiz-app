@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import { signInWithRedirect, signOut, fetchAuthSession} from "aws-amplify/auth";
 
 type User = {
@@ -9,18 +9,22 @@ type User = {
 export function AwsLoginButton() {
     const [user, setUser] = useState<User | undefined>(undefined);
 
-    fetchAuthSession().then(auth => {
-        console.log("auth", auth);
-        setUser({
-            email: auth.tokens?.idToken?.payload?.email as string,
-            username: auth.tokens?.accessToken.payload.username as string
-        });
-    })
-        .catch(err => {
-            console.log(err);
-            console.log("auth", false);
-            setUser(undefined);
-        });
+    useEffect(() => {
+        fetchAuthSession().then(auth => {
+            console.log("auth", auth);
+            if (auth.tokens) {
+                setUser({
+                    email: auth.tokens?.idToken?.payload?.email as string,
+                    username: auth.tokens?.accessToken.payload.username as string
+                });
+            }
+        })
+            .catch(err => {
+                console.log(err);
+                console.log("auth", false);
+                setUser(undefined);
+            });
+    }, []);
 
     return <>
         {!user &&

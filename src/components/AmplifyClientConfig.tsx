@@ -4,6 +4,9 @@ import { Amplify } from "aws-amplify";
 
 export function AmplifyClientConfig() {
   useEffect(() => {
+    console.log("cognito domain", import.meta.env.PUBLIC_COGNITO_DOMAIN);
+    console.log("signin redirect", import.meta.env.PUBLIC_COGNITO_REDIRECT_SIGNIN);
+    console.log("signout redirect", import.meta.env.PUBLIC_COGNITO_REDIRECT_SIGNOUT);
     Amplify.configure({
       Auth: {
         Cognito: {
