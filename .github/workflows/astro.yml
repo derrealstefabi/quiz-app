@@ -68,7 +68,7 @@ jobs:
         working-directory: ${{ env.BUILD_PATH }}
       - name: Create env file
         run: |
-          rm .env
+          rm -f .env
           echo "PUBLIC_AWS_ENDPOINT_URL=${{ vars.PUBLIC_AWS_ENDPOINT_URL }}" >> .env
           echo "PUBLIC_AWS_REGION=${{ vars.PUBLIC_AWS_REGION }}" >> .env
           echo "PUBLIC_COGNITO_DOMAIN=${{ vars.PUBLIC_COGNITO_DOMAIN }}" >> .env
