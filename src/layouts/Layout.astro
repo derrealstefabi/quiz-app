@@ -1,4 +1,6 @@
 ---
+import { AmplifyClientConfig } from "../components/AmplifyClientConfig";
+import { AwsLoginButton } from "../components/AwsLoginButton";
 import "../styles/global.css";
 ---
 
@@ -9,9 +11,13 @@ import "../styles/global.css";
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Hello There!</title>
+		<title>Quiz App</title>
 	</head>
 	<body>
+		<AmplifyClientConfig client:only="react" />
+		<div class="fixed top-5 right-5">
+			<AwsLoginButton client:only="react"></AwsLoginButton>
+		</div>
 		<slot />
 	</body>
 </html>
