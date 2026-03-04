@@ -77,7 +77,7 @@ jobs:
           echo "PUBLIC_COGNITO_REDIRECT_SIGNOUT=${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNOUT }}" >> .env
           echo "PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_CLIENT_ID }}" >> .env
           echo "PUBLIC_COGNITO_USER_POOL_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}" >> .env
-          echo .env
+          cat .env
           ls -la
         working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
