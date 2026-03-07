@@ -2,6 +2,7 @@
 import { AmplifyClientConfig } from "../components/AmplifyClientConfig";
 import { AwsLoginButton } from "../components/AwsLoginButton";
 import "../styles/global.css";
+import cat from "../assets/animal.png"
 ---
 
 <!doctype html>
@@ -15,6 +16,9 @@ import "../styles/global.css";
 	</head>
 	<body>
 		<AmplifyClientConfig client:only="react" />
+		<div class="fixed top-5 left-5 text-xl font-bold" onclick="window.location.href = '/';">
+			<img src={cat.src} alt="logo" class="w-12 h-12">
+		</div>
 		<div class="fixed top-5 right-5">
 			<AwsLoginButton client:only="react"></AwsLoginButton>
 		</div>

@@ -6,23 +6,41 @@ import {Button} from "./Button.tsx";
 export interface QuestionData {
     question: string;
     answer: string;
+    points: string;
     image: File | null;
     choices: string[];
+    valid: boolean;
 }
 
-export function CreateQuestion({id, onDataChange}: {
+export function CreateQuestion({id, onDataChange, validate}: {
     id: string,
     onDataChange: (id: string, data: QuestionData) => void,
+    validate?: boolean,
 }) {
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
+    const [points, setPoints] = useState("");
     const [image, setImage] = useState<File | null>(null);
     const [choices, setChoices] = useState<string[]>([]);
+    const [valid, setValid] = useState<boolean>(true);
     const [invalidChoices, setInvalidChoices] = useState<string[]>([]);
+    const [pointsNotNumber, setPointsNotNumber] = useState<boolean>(false);
+    const [emptyValues, setEmptyValues] = useState<boolean>(false);
 
     useEffect(() => {
-        onDataChange(id, { question, answer, image, choices });
-    }, [question, answer, image, choices]);
+        setValid(true);
+        setPointsNotNumber(false);
+        setEmptyValues(false);
+        if (isNaN(Number(points))) {
+            setPointsNotNumber(true);
+            setValid(false);
+        }
+        if (question === '' || answer.trim() === '') {
+            setEmptyValues(true);
+            setValid(false);
+        }
+        onDataChange(id, { question, answer, points, image, choices, valid });
+    }, [question, answer, points, image, choices]);
 
     const handleFileSelect = (fileId: string, file: File | null) => {
         setImage(file);
@@ -51,9 +69,23 @@ export function CreateQuestion({id, onDataChange}: {
 
 
     return (
-        <div className="space-y-4">
-            <TextInput id={`${id}-question`} label="Question" name="question" value={question} onChange={(e) => setQuestion(e.target.value)} />
-            <TextInput id={`${id}-answer`} label="Answer" name="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+        <div className="relative space-y-4 p-4 bg-white/15 rounded-lg shadow-sm">
+            <button
+                className={"absolute top-2 right-2 text-md font-bold text-red-500 hover:text-red-600 active:text-red-900"}
+                onClick={() =>{}}>X
+            </button>
+            <div>
+                <TextInput id={`${id}-question`} label="Question" name="question" value={question} onChange={(e) => setQuestion(e.target.value)} />
+                {validate && emptyValues && <div className="text-red-500">Question and Answer cannot be empty</div>}
+            </div>
+            <div>
+                <TextInput id={`${id}-answer`} label="Answer" name="answer" value={answer} onChange={(e) => setAnswer(e.target.value)} />
+                {validate && emptyValues && <div className="text-red-500">Question and Answer cannot be empty</div>}
+            </div>
+            <div>
+                <TextInput id={`${id}-points`} label="Points" name="points" value={points} onChange={(e) => setPoints(e.target.value)} />
+                {pointsNotNumber && <div className="text-red-500">Points must be a number</div>}
+            </div>
             <FileInput id={`${id}-image`} selectFile={handleFileSelect} />
 
             <h3 className="text-lg font-semibold">Multiple Choice Options</h3>
@@ -67,7 +99,9 @@ export function CreateQuestion({id, onDataChange}: {
                             value={choice}
                             onChange={(e) => handleChoiceChange(index, e)}
                         />
-                        <button onClick={() => removeChoice(index)} className="text-red-500 hover:text-red-700">Remove</button>
+                        <div className="self-start">
+                            <button onClick={() => removeChoice(index)} className="text-md font-bold text-red-500 hover:text-red-600 active:text-red-900">X</button>
+                        </div>
                     </div>
                     <div className="text-red-500">{invalidChoices.includes(`${id}-choice-${index}`) && "Choice may not contain ###"}</div>
                 </>

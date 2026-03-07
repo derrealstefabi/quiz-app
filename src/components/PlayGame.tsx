@@ -72,6 +72,10 @@ export function PlayGame() {
         setQuizId(quizId);
 
         fetchAuthSession().then(auth => {
+
+            if (auth.tokens === undefined) {
+                return;
+            }
             fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz/" + quizId, {
                 method: 'GET',
                 headers: {

@@ -23,6 +23,9 @@ export function QuizList() {
     useEffect(() => {
         console.log(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz");
         fetchAuthSession().then(auth => {
+            if (auth.tokens === undefined) {
+                return;
+            }
             fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz", {
                 method: 'GET',
                 headers: {

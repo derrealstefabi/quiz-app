@@ -6,6 +6,7 @@ import {useState} from "react";
 import JSZip from "jszip";
 import {TextInput} from "./TextInput.tsx";
 import {fetchAuthSession} from "aws-amplify/auth";
+import saveAs from "file-saver";
 
 export interface AwsQuestion {
   category: string;
@@ -25,6 +26,7 @@ export interface AwsQuiz {
 const  CreateQuiz = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [quizName, setQuizName] = useState<string>("");
+  const [validate, setValidate] = useState<boolean>(false);
   const [categoryData, setCategoryData] = useState(new Map<string, CategoryData>());
   const questionId = useRef(0);
 
@@ -108,12 +110,12 @@ const  CreateQuiz = () => {
 
       const validQuestions = new Map();
       data.questions.forEach((questionData, questionId) => {
-        if (questionData.question.trim() !== '') {
+        if (questionData.valid) {
           validQuestions.set(questionId, questionData);
         }
       });
 
-      if(validQuestions.size === 0) {
+      if(validQuestions.size !== data.questions.size) {
         return;
       }
 
@@ -140,23 +142,23 @@ const  CreateQuiz = () => {
     if (download) {
       zip.generateAsync({type:"blob"})
           .then(function(content) {
-            const saveAs = require('file-saver');
             saveAs(content, "quiz.zip");
       });
     }
   }
 
   const saveGame = async () => {
+    setValidate(true);
     let quiz: AwsQuiz = {
       name: quizName,
-      questions: categoryData.entries().map(([categoryId, categoryData]) => {
-        return categoryData.questions.entries().map(([questionId, questionData]) => {
+      questions: categoryData.entries().map(([_categoryId, categoryData]) => {
+        return categoryData.questions.entries().map(([_questionId, questionData]) => {
           let question = {
             category: categoryData.name,
             question: questionData.question,
             answer: questionData.answer,
             choices: questionData.choices,
-            points: questionId.split('-').pop()!
+            points: questionData.points
           } as AwsQuestion;
           if (questionData.image) {
             question.imageFile = questionData.image;
@@ -173,35 +175,48 @@ const  CreateQuiz = () => {
   }
 
   const downloadGame = () => {
+    setValidate(true);
     createQuiz(false, true);
   }
 
-  return (
-      <main className="flex flex-col items-center justify-center gap-3 min-h-0 pt-16 pb-4 mx-20">
-        <div className="self-start">
-          <TextInput id={'create-quiz-quiz-name'} name={'create-quiz-quiz-name'} label={"Quiz name"} onChange={(e) => setQuizName(e.target.value)} ></TextInput>
+  const goBack = (): void => {
+    window.history.back();
+  }
 
-        </div>
-        {categories.length > 0 && categories.map((id: string) =>
-            <CreateCategory
-                id={id}
-                onCategoryChange={handleCategoryChange}
-                removeCategory={() => {
-                  setCategories([...categories.filter(t => t !== id)]);
-                  const newCategoryData = new Map(categoryData);
-                  newCategoryData.delete(id);
-                  setCategoryData(newCategoryData);
-                }}
-            />
-        )}
-        <div className={"flex gap-5"}>
-          {quizName.length > 0 &&
-              <Button onClick={addCategory}>Add Category</Button>}
-          {categories.length > 0 &&
-              <div className={"ms-auto flex gap-5"}>
-                <Button onClick={saveGame}>Save Quiz</Button>
-                <Button onClick={downloadGame}>Download Quiz</Button>
-              </div>}
+  return (
+      <main className="flex flex-col w-full">
+        <div className="flex flex-col mx-auto my-auto items-center justify-center align-center gap-3 min-h-0 mt-24 p-4">
+          <div className="self-center">
+            <TextInput id={'create-quiz-quiz-name'} name={'create-quiz-quiz-name'} label={"Quiz name"} onChange={(e) => setQuizName(e.target.value)} ></TextInput>
+          </div>
+          {categories.length > 0 && categories.map((id: string) =>
+              <CreateCategory
+                  id={id}
+                  onCategoryChange={handleCategoryChange}
+                  removeCategory={() => {
+                    setCategories([...categories.filter(t => t !== id)]);
+                    const newCategoryData = new Map(categoryData);
+                    newCategoryData.delete(id);
+                    setCategoryData(newCategoryData);
+                  }}
+                  validate={validate}
+              />
+          )}
+          <div className={"w-full flex justify-end gap-5"}>
+            <div className={"me-auto"}>
+              <Button onClick={goBack}>Back</Button>
+            </div>
+            {quizName.length > 0 &&
+                <div className={"ms-auto"}>
+                  <Button onClick={addCategory}>Add Category</Button>
+                </div>}
+            {quizName.length > 0 && categories.length > 0 &&
+                <div className={"ms-auto flex gap-5"}>
+                  <Button onClick={saveGame}>Save Quiz</Button>
+                  <Button onClick={downloadGame}>Download Quiz</Button>
+                </div>}
+
+          </div>
 
         </div>
       </main>
