@@ -11,6 +11,12 @@
 https://derrealstefabi.github.io/quiz-app/
 
 ## Screenshots
+<img width="300" alt="quiz list" src="https://github.com/user-attachments/assets/18c95327-3edb-4a8f-b8cc-adefd50b26c7" />
+<img width="300" alt="create quiz" src="https://github.com/user-attachments/assets/96cf4a9a-92fa-445f-ad0f-4869374a434b" />
+<img width="300" alt="quiz board" src="https://github.com/user-attachments/assets/fcd4b62b-27eb-469f-bbec-a00aa011da7a" />
+<img width="300" alt="question display" src="https://github.com/user-attachments/assets/6ca57e8d-5669-4464-8dd8-60e0be3f4c00" />
+<img width="300" alt="answer question" src="https://github.com/user-attachments/assets/2e1c3d9c-6409-4474-aa62-de80db5a46cd" />
+
 
 
 ## Features
