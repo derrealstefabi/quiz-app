@@ -73,8 +73,8 @@ export function QuizList() {
                         <td className="px-4 py-3">
                             <div className="flex justify-end gap-2">
                                 <Button onClick={() => playQuiz(quiz.id)}>Play</Button>
-                                <Button>Edit</Button>
-                                <Button>Export</Button>
+                                {/*<Button>Edit</Button>*/}
+                                {/*<Button>Export</Button>*/}
                             </div>
                         </td>
                     </tr>
