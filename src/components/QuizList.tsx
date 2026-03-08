@@ -58,7 +58,7 @@ export function QuizList() {
     }, [])
 
     const playQuiz = (quiz: string): void => {
-        window.location.href = "/play?quiz=" + quiz;
+        window.location.href = "/quiz-app/play?quiz=" + quiz;
     }
 
     return (

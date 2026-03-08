@@ -91,7 +91,7 @@ export function CreateQuestion({id, onDataChange, validate}: {
             <h3 className="text-lg font-semibold">Multiple Choice Options</h3>
             {choices.map((choice, index) => (
                 <>
-                    <div key={index} className="flex items-center gap-2">
+                    <div key={index} className="flex items-center gap-2 relative">
                         <TextInput
                             id={`${id}-choice-${index}`}
                             label={`Option ${index + 1}`}
@@ -99,7 +99,7 @@ export function CreateQuestion({id, onDataChange, validate}: {
                             value={choice}
                             onChange={(e) => handleChoiceChange(index, e)}
                         />
-                        <div className="self-start">
+                        <div className="absolute top-0 right-0">
                             <button onClick={() => removeChoice(index)} className="text-md font-bold text-red-500 hover:text-red-600 active:text-red-900">X</button>
                         </div>
                     </div>

@@ -24,6 +24,7 @@ https://derrealstefabi.github.io/quiz-app/
 * **AWS integration:** Save your quiz to the cloud and play anytime.
 * **Play mode:** Put the app up on a TV and play with your friends.
 * **User Authentication:** Secure login and registration using Amazon Cognito.
+* **Confetti:** Because you need to celebrate your wins whenever you can.
 
 ## Tech Stack
 * **Languages:** typescript, python

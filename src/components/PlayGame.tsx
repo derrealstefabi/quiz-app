@@ -290,7 +290,7 @@ export function PlayGame() {
                             className={"absolute top-4 right-5 text-lg font-bold text-black hover:text-gray-600 active:text-gray-900"}
                             onClick={() => setShowModal(false)}>X
                         </button>
-                        <div className={"flex flex-col gap-2 items-center justify-center p-8"}>
+                        <div className={"flex flex-col gap-2 items-center justify-center"}>
                             {openedQuestion && (
                                 <div className="mb-4 text-center">
                                     <h3 className="text-xl font-semibold text-black">The correct answer is:</h3>
@@ -298,11 +298,11 @@ export function PlayGame() {
                                 </div>
                             )}
                             <div className={"pb-3 text-2xl font-bold whitespace-nowrap"}>Who gets the points?</div>
-                            <div className={"flex gap-2 items-center justify-center"}>
+                            <div className={"flex gap-2 items-center justify-center flex-wrap"}>
                                 {teams.map((t: Team) => (
                                     <div
                                         onClick={() => answerQuestion(t)}
-                                        className={"basis-1/2 grow-0 shrink-0 flex justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
+                                        className={"basis-49/100 grow-0 shrink-0 flex justify-center gap-1 min-h-0 items-center font-bold rounded-3xl border p-6 border-gray-700 bg-white/25 " +
                                             "hover:bg-white/35 active:bg-white/90"}>
                                         <span>{t.name}</span>
                                     </div>
