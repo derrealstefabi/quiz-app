@@ -1,9 +1,9 @@
 # Quiz App
 
-**A webapp for creating, saving and playing trivia quizes..**
+**A webapp for creating, saving and playing trivia quizes.**
 
 [![Deploy to Pages](https://github.com/derrealstefabi/quiz-app/actions/workflows/astro.yml/badge.svg)](https://github.com/derrealstefabi/quiz-app/actions/workflows/astro.yml)
-![Website](https://img.shields.io/website?url=https%3A%2F%2Fderrealstefabi.github.io%2Fquiz-app%2F&up_message=online&label=gh%20pages%20demo)
+[![Website](https://img.shields.io/website?url=https%3A%2F%2Fderrealstefabi.github.io%2Fquiz-app%2F&up_message=online&label=gh%20pages%20demo)](https://derrealstefabi.github.io/quiz-app/)
 
 
 
@@ -16,8 +16,6 @@ https://derrealstefabi.github.io/quiz-app/
 <img width="300" alt="quiz board" src="https://github.com/user-attachments/assets/fcd4b62b-27eb-469f-bbec-a00aa011da7a" />
 <img width="300" alt="question display" src="https://github.com/user-attachments/assets/6ca57e8d-5669-4464-8dd8-60e0be3f4c00" />
 <img width="300" alt="answer question" src="https://github.com/user-attachments/assets/2e1c3d9c-6409-4474-aa62-de80db5a46cd" />
-
-
 
 ## Features
 * **Quiz creation:** Create your own quiz directly in the app.
@@ -52,7 +50,6 @@ Make sure you have the following installed:
    ```bash
     npm install
    ```
-
 
 ### Set up AWS integration 
 This is optional, but without this the app works only with downloaded quizzes
