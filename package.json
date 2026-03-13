@@ -25,5 +25,8 @@
     "react-confetti-explosion": "^3.0.3",
     "react-dom": "^19.1.0",
     "tailwindcss": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
   }
 }

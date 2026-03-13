@@ -170,7 +170,7 @@ const  CreateQuiz = () => {
     }
     console.log(quiz);
     if (await addDynamo(quiz)) {
-      window.location.href = "/quiz-app/";
+      window.location.href = import.meta.env.BASE_URL;
     }
   }
 

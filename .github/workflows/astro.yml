@@ -67,19 +67,16 @@ jobs:
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
         working-directory: ${{ env.BUILD_PATH }}
-      - name: Create env file
-        run: |
-          rm -f .env
-          echo "PUBLIC_AWS_ENDPOINT_URL=${{ vars.PUBLIC_AWS_ENDPOINT_URL }}" >> .env
-          echo "PUBLIC_AWS_REGION=${{ vars.PUBLIC_AWS_REGION }}" >> .env
-          echo "PUBLIC_COGNITO_DOMAIN=${{ vars.PUBLIC_COGNITO_DOMAIN }}" >> .env
-          echo "PUBLIC_COGNITO_REDIRECT_SIGNIN=${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNIN }}" >> .env
-          echo "PUBLIC_COGNITO_REDIRECT_SIGNOUT=${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNOUT }}" >> .env
-          echo "PUBLIC_COGNITO_USER_POOL_CLIENT_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_CLIENT_ID }}" >> .env
-          echo "PUBLIC_COGNITO_USER_POOL_ID=${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}" >> .env
-          cat .env
-        working-directory: ${{ env.BUILD_PATH }}
       - name: Build with Astro
+        env:
+          PUBLIC_AWS_ENDPOINT_URL: ${{ vars.PUBLIC_AWS_ENDPOINT_URL }}
+          PUBLIC_AWS_REGION: ${{ vars.PUBLIC_AWS_REGION }}
+          PUBLIC_COGNITO_DOMAIN: ${{ vars.PUBLIC_COGNITO_DOMAIN }}
+          PUBLIC_COGNITO_REDIRECT_SIGNIN: ${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNIN }}
+          PUBLIC_COGNITO_REDIRECT_SIGNOUT: ${{ vars.PUBLIC_COGNITO_REDIRECT_SIGNOUT }}
+          PUBLIC_COGNITO_USER_POOL_CLIENT_ID: ${{ vars.PUBLIC_COGNITO_USER_POOL_CLIENT_ID }}
+          PUBLIC_COGNITO_USER_POOL_ID: ${{ vars.PUBLIC_COGNITO_USER_POOL_ID }}
+          PUBLIC_BASE_URL: ${{ github.event.repository.name }}
         run: |
           ${{ steps.detect-package-manager.outputs.runner }} astro build \
             --site "${{ steps.pages.outputs.origin }}" \
