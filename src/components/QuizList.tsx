@@ -58,7 +58,7 @@ export function QuizList() {
     }, [])
 
     const playQuiz = (quiz: string): void => {
-        window.location.href = `${import.meta.env.BASE_URL}/play?quiz=${quiz}`;
+        window.location.href = `${import.meta.env.BASE_URL}play?quiz=${quiz}`;
     }
 
     return (
@@ -81,9 +81,12 @@ export function QuizList() {
                 ))}
             </table>
             <div className="flex justify-end">
-                <a href={`${import.meta.env.BASE_URL}/create`}
+                <a href={`${import.meta.env.BASE_URL}create`}
                    className={`rounded-md bg-sky-500 px-5 py-2.5 text-sm leading-5 font-semibold text-white hover:bg-sky-700`}
                 >Create new Quiz</a>
+                {import.meta.env.DEV &&
+                    <Button onClick={() => playQuiz('test')}>Playtest</Button>
+                }
             </div>
         </div>)
 }

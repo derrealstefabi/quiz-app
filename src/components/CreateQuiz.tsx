@@ -185,7 +185,7 @@ const  CreateQuiz = () => {
 
   return (
       <main className="flex flex-col w-full">
-        <div className="flex flex-col mx-auto my-auto items-center justify-center align-center gap-3 min-h-0 mt-24 p-4">
+        <div className="flex flex-col mx-auto my-auto items-center justify-center align-center gap-3 min-h-0 p-4">
           <div className="self-center">
             <TextInput id={'create-quiz-quiz-name'} name={'create-quiz-quiz-name'} label={"Quiz name"} onChange={(e) => setQuizName(e.target.value)} ></TextInput>
           </div>

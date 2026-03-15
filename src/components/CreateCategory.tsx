@@ -47,7 +47,7 @@ export function CreateCategory({id, onCategoryChange, removeCategory, validate}:
         onCategoryChange(id, { name: e.target.value, questions: questions, valid: name.trim() !== ""});
     }
 
-    return <div className={"w-full bg-white/15 p-8 rounded-lg shadow-xl  relative"}>
+    return <div className={"w-full bg-white/15 p-8 rounded-lg shadow-xl relative"}>
         <button
             className={"absolute top-2 right-2 text-md font-bold text-red-500 hover:text-red-600 active:text-red-900"}
             onClick={removeCategory}>X
@@ -58,9 +58,9 @@ export function CreateCategory({id, onCategoryChange, removeCategory, validate}:
                 {validate && name.trim() === "" && <div className="text-red-500">Category name cannot be empty</div>}
             </div>
         </div>
-        <div className="flex flex-row gap-3">
+        <div className="flex flex-row flex-wrap gap-3">
                 {questions.keys().map(key => (
-                    <div key={key}>
+                    <div className={"flex"} key={key}>
                         <CreateQuestion id={`${key}`} onDataChange={handleQuestionChange} validate={validate} />
                     </div>
                 ))}

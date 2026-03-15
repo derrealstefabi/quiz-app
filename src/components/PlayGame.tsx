@@ -7,6 +7,7 @@ import {QuestionDisplay} from "./QuestionDisplay.tsx";
 import {createPortal} from "react-dom";
 import "./play-game.css";
 import ConfettiExplosion from 'react-confetti-explosion';
+import testQuiz from './test-quiz.json';
 
 import {fetchAuthSession} from "aws-amplify/auth";
 
@@ -74,6 +75,7 @@ export function PlayGame() {
         fetchAuthSession().then(auth => {
 
             if (auth.tokens === undefined) {
+                void createQuestions(testQuiz);
                 return;
             }
             fetch(import.meta.env.PUBLIC_AWS_ENDPOINT_URL + "/quiz/" + quizId, {
@@ -218,10 +220,12 @@ export function PlayGame() {
     }
 
     return (
-        <main className={'flex h-screen'}>
-            {categories.length === 0 && <div className="m-auto flex flex-col gap-5 ">
-                {isLoading && <div>Loading...</div>}
-            </div>}
+        <main className={'flex flex-col'}>
+            {categories.length === 0 &&
+                <div className="m-auto flex flex-col gap-5 ">
+                    {isLoading && <div>Loading...</div>}
+                </div>
+            }
             {!gameStarted && categories.length > 0 &&
                 <div className="m-auto flex flex-col gap-5 ">
                     {teams.length > 0 && teams.map((team: Team) =>
@@ -237,36 +241,30 @@ export function PlayGame() {
                     <Button onClick={startGame}>Start Quiz</Button>
                 </div>}
             {gameStarted && !openedQuestion &&
-                <div className="w-full p-5 grid grid-cols-5 gap-4">
+                <div className="flex flex-wrap justify-between p-5 lg:mt-30 gap-x-3 gap-y-7">
                     {/*{categories.length === 0 && <FileInput selectFile={startGame} id={"gameStarter"}/>}*/}
-
-                    {categories.length > 0 && (
-                        <div className="flex flex-col w-full col-span-4 gap-3  items-center justify-center">
-                            {categories.map((c: Category) => (
-                                <div
-                                    className={"grid grid-cols-12 gap-16 min-h-0 items-center rounded-lg p-3 bg-white/10 shadow-md "}>
-                                    <div className={"col-span-5 bold text-3xl"}>{c.name}</div>
-                                    <div className={"col-span-7 flex justify-start gap-10 min-h-0"}>
-                                        {c.questions.sort((a, b) => {
-                                            return a.points - b.points
-                                        }).map((question: Question) =>
-                                            <QuestionButton
-                                                color={c.color}
-                                                disabled={question.opened}
-                                                onClick={() => openQuestion(question)}>{question.points}
-                                            </QuestionButton>
-                                        )}
-                                    </div>
+                    <div className="flex flex-col basis-full lg:basis-39/50 shrink-0 order-2 lg:order-1 gap-3 items-center">
+                        {categories.map((c: Category) => (
+                            <div className={"grid grid-cols-[minmax(0,_1fr)_auto] w-full max-w-5xl gap-x-10 md:gap-x-16 gap-y-3 min-h-0 items-center rounded-lg p-3 bg-white/10 shadow-md "}>
+                                <div className={"bold text-3xl col-span-2 sm:col-span-1 wrap-break-word"}>{c.name}</div>
+                                <div className={"col-span-2 sm:col-span-1 flex flex-wrap justify-start sm:justify-end gap-5 md:gap-10 lg:gap-10 min-h-0"}>
+                                    {c.questions.sort((a, b) => {
+                                        return a.points - b.points
+                                    }).map((question: Question) =>
+                                        <QuestionButton
+                                            color={c.color}
+                                            disabled={question.opened}
+                                            onClick={() => openQuestion(question)}>{question.points}
+                                        </QuestionButton>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
-
-                    )}
+                            </div>
+                        ))}
+                    </div>
                     {teams.length > 0 && (
-                        <div className={"flex flex-col w-full gap-2 items-center justify-center"}>
+                        <div className={"flex flex-col basis-full shrink-0 lg:basis-9/50 order-1 lg:order-2 gap-2 items-center"}>
                             {teams.map((t: Team) => (
-                                <div
-                                    className={"flex w-full justify-between gap-1 min-h-0 items-center rounded-3xl p-6 font-medium bg-white/10 shadow-md" +
+                                <div className={"flex w-full justify-between gap-1 min-h-0 items-center rounded-3xl p-6 font-medium bg-white/10 shadow-md" +
                                     (teams.at(activeTeam)?.id === t.id ? " bg-white/45" : "")}>
                                     <span
                                         className={teams.at(activeTeam)?.id === t.id ? "text-xl font-extrabold" : ""}>{t.name}</span>
